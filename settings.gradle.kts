@@ -1,0 +1,1 @@
+rootProject.name = "emrehzl.com.content-management-system"
