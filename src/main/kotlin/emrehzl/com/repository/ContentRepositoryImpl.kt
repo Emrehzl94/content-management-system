@@ -36,6 +36,14 @@ class ContentRepositoryImpl : ContentRepository {
         return contents
     }
 
+    override suspend fun getById(id: String): Content? {
+        val content = dbQuery {
+            ContentTable.select { ContentTable.id.eq(id) }
+                .map { rowToContent(it) }.singleOrNull()
+        }
+        return content
+    }
+
     private fun rowToContent(row: ResultRow?): Content? {
         return if (row == null) null
         else Content(
