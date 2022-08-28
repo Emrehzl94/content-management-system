@@ -9,4 +9,5 @@ interface ContentService {
     suspend fun list(): BaseResponse<Any>
     suspend fun getById(id: String?): BaseResponse<Any>
     suspend fun update(params: ContentUpdateParams): BaseResponse<Any>
+    suspend fun delete(id: String?): BaseResponse<Any>
 }

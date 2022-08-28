@@ -73,6 +73,12 @@ class ContentRepositoryImpl : ContentRepository {
         return content
     }
 
+    override suspend fun delete(id: String) {
+        dbQuery {
+            ContentTable.deleteWhere { ContentTable.id.eq(id) }
+        }
+    }
+
     private fun rowToContent(row: ResultRow?): Content? {
         return if (row == null) null
         else Content(

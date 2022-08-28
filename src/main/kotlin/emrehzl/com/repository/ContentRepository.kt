@@ -9,4 +9,5 @@ interface ContentRepository {
     suspend fun list(): List<Content?>
     suspend fun getById(id: String): Content?
     suspend fun update(params: ContentUpdateParams): Content?
+    suspend fun delete(id: String)
 }

@@ -34,6 +34,12 @@ fun Application.contentRoutes(contentService: ContentService) {
                 val result = contentService.update(params)
                 call.respond(result.statusCode, result)
             }
+
+            delete("{id?}") {
+                val id = call.parameters["id"]
+                val result = contentService.delete(id)
+                call.respond(result.statusCode, result)
+            }
         }
     }
 }
