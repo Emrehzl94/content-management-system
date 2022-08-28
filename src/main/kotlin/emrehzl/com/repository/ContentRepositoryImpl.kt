@@ -4,11 +4,10 @@ import emrehzl.com.db.ContentTable
 import emrehzl.com.db.DatabaseFactory.dbQuery
 import emrehzl.com.models.Content
 import emrehzl.com.reqresobjects.ContentCreateParams
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
+import emrehzl.com.reqresobjects.ContentUpdateParams
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import org.jetbrains.exposed.sql.statements.UpdateStatement
 import java.util.*
 
 class ContentRepositoryImpl : ContentRepository {
@@ -41,6 +40,36 @@ class ContentRepositoryImpl : ContentRepository {
             ContentTable.select { ContentTable.id.eq(id) }
                 .map { rowToContent(it) }.singleOrNull()
         }
+        return content
+    }
+
+    override suspend fun update(params: ContentUpdateParams): Content? {
+        val content = dbQuery {
+            ContentTable.update({ ContentTable.id.eq(params.id) }) {
+                if (params.name != null) {
+                    it[name] = params.name
+                }
+                if (params.year != null) {
+                    it[year] = params.year
+                }
+                if (params.summary != null) {
+                    it[summary] = params.summary
+                }
+                if (params.genre != null) {
+                    it[genre] = params.genre
+                }
+                if (params.posterUrl != null) {
+                    it[posterUrl] = params.posterUrl
+                }
+                if (params.videoUrl != null) {
+                    it[videoUrl] = params.videoUrl
+                }
+            }
+
+            ContentTable.select { ContentTable.id.eq(params.id) }
+                .map { rowToContent(it) }.singleOrNull()
+        }
+
         return content
     }
 

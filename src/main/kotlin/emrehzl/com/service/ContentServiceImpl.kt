@@ -2,6 +2,7 @@ package emrehzl.com.service
 
 import emrehzl.com.repository.ContentRepository
 import emrehzl.com.reqresobjects.ContentCreateParams
+import emrehzl.com.reqresobjects.ContentUpdateParams
 import emrehzl.com.utils.BaseResponse
 
 class ContentServiceImpl(private val contentRepository: ContentRepository): ContentService {
@@ -21,6 +22,15 @@ class ContentServiceImpl(private val contentRepository: ContentRepository): Cont
         val content = contentRepository.getById(id)
         return if (content == null) {
             BaseResponse.ErrorResponse(message = "Content can not be found with id: $id")
+        } else {
+            BaseResponse.SuccessResponse(data = content)
+        }
+    }
+
+    override suspend fun update(params: ContentUpdateParams): BaseResponse<Any> {
+        val content = contentRepository.update(params)
+        return if (content == null) {
+            BaseResponse.ErrorResponse(message = "Content can not be updated")
         } else {
             BaseResponse.SuccessResponse(data = content)
         }

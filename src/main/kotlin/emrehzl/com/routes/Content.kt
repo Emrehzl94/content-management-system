@@ -1,6 +1,7 @@
 package emrehzl.com.routes
 
 import emrehzl.com.reqresobjects.ContentCreateParams
+import emrehzl.com.reqresobjects.ContentUpdateParams
 import emrehzl.com.service.ContentService
 import io.ktor.application.*
 import io.ktor.request.*
@@ -25,6 +26,12 @@ fun Application.contentRoutes(contentService: ContentService) {
             get("{id?}") {
                 val id = call.parameters["id"]
                 val result = contentService.getById(id)
+                call.respond(result.statusCode, result)
+            }
+
+            put {
+                val params = call.receive<ContentUpdateParams>()
+                val result = contentService.update(params)
                 call.respond(result.statusCode, result)
             }
         }
