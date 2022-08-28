@@ -14,6 +14,7 @@ object DatabaseFactory {
         Database.connect(hikari())
         transaction {
             SchemaUtils.create(ContentTable)
+            SchemaUtils.create(LicenseTable)
         }
     }
 
