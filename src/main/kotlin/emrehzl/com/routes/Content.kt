@@ -21,6 +21,12 @@ fun Application.contentRoutes(contentService: ContentService) {
                 val result = contentService.list()
                 call.respond(result.statusCode, result)
             }
+
+            get("{id?}") {
+                val id = call.parameters["id"]
+                val result = contentService.getById(id)
+                call.respond(result.statusCode, result)
+            }
         }
     }
 }

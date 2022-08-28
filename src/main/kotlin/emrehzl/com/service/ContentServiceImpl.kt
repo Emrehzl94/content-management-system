@@ -14,7 +14,10 @@ class ContentServiceImpl(private val contentRepository: ContentRepository): Cont
         return BaseResponse.SuccessResponse(data = contentRepository.list())
     }
 
-    override suspend fun getById(id: String): BaseResponse<Any> {
+    override suspend fun getById(id: String?): BaseResponse<Any> {
+        if (id == null) {
+            return BaseResponse.ErrorResponse("Id cannot be empty.")
+        }
         val content = contentRepository.getById(id)
         return if (content == null) {
             BaseResponse.ErrorResponse(message = "Content can not be found with id: $id")
