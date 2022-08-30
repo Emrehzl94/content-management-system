@@ -1,5 +1,6 @@
 package emrehzl.com.routes
 
+import emrehzl.com.models.ContentStatus
 import emrehzl.com.reqresobjects.ContentCreateParams
 import emrehzl.com.reqresobjects.ContentUpdateParams
 import emrehzl.com.service.ContentService
@@ -19,7 +20,10 @@ fun Application.contentRoutes(contentService: ContentService) {
             }
 
             get {
-                val result = contentService.list()
+                val name = call.request.queryParameters["name"]
+                val statusString = call.request.queryParameters["status"]
+                val status = if (statusString.isNullOrEmpty()) null else ContentStatus.valueOf(statusString)
+                val result = contentService.list(name, status)
                 call.respond(result.statusCode, result)
             }
 

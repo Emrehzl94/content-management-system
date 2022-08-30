@@ -14,7 +14,7 @@ import java.util.*
 class LicenseRepositoryImpl : LicenseRepository {
     override suspend fun create(params: LicenseCreateParams): License? {
         var statement: InsertStatement<Number>? = null
-        DatabaseFactory.dbQuery {
+        dbQuery {
             statement = LicenseTable.insert {
                 it[name] = params.name
                 it[startTime] = LocalDate.parse(params.startTime)
@@ -24,11 +24,11 @@ class LicenseRepositoryImpl : LicenseRepository {
         return rowToLicense(statement?.resultedValues?.get(0))
     }
 
-    override suspend fun list(): List<License?> {
+    override suspend fun list(): List<License> {
         val licenses = dbQuery {
             LicenseTable.selectAll().map { rowToLicense(it) }.toList()
         }
-        return licenses
+        return licenses.filterNotNull()
     }
 
     override suspend fun getById(id: String): License? {
@@ -42,7 +42,7 @@ class LicenseRepositoryImpl : LicenseRepository {
     override suspend fun getByIds(ids: List<String>): List<License> {
         val licenses = dbQuery {
             LicenseTable.select { LicenseTable.id.inList(ids.map { UUID.fromString(it) }) }
-                .map { rowToLicense(it)}.toList()
+                .map { rowToLicense(it) }.toList()
         }
         return licenses.filterNotNull()
     }
@@ -50,15 +50,9 @@ class LicenseRepositoryImpl : LicenseRepository {
     override suspend fun update(params: LicenseUpdateParams): License? {
         val license = dbQuery {
             LicenseTable.update({ LicenseTable.id.eq(UUID.fromString(params.id)) }) {
-                if (params.name != null) {
-                    it[name] = params.name
-                }
-                if (params.startTime != null) {
-                    it[startTime] = LocalDate.parse(params.startTime)
-                }
-                if (params.endTime != null) {
-                    it[endTime] = LocalDate.parse(params.endTime)
-                }
+                if (params.name != null) it[name] = params.name
+                if (params.startTime != null) it[startTime] = LocalDate.parse(params.startTime)
+                if (params.endTime != null) it[endTime] = LocalDate.parse(params.endTime)
             }
 
             LicenseTable.select { LicenseTable.id.eq(UUID.fromString(params.id)) }

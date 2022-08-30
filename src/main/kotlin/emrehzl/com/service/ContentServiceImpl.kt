@@ -1,6 +1,7 @@
 package emrehzl.com.service
 
 import emrehzl.com.models.Content
+import emrehzl.com.models.ContentStatus
 import emrehzl.com.models.License
 import emrehzl.com.repository.ContentLicenseRepository
 import emrehzl.com.repository.ContentRepository
@@ -20,8 +21,8 @@ class ContentServiceImpl(
         return BaseResponse.SuccessResponse(data = content)
     }
 
-    override suspend fun list(): BaseResponse<Any> {
-        return BaseResponse.SuccessResponse(data = contentRepository.list())
+    override suspend fun list(name: String?, status: ContentStatus?): BaseResponse<Any> {
+        return BaseResponse.SuccessResponse(data = contentRepository.list(name, status))
     }
 
     override suspend fun getById(id: String?): BaseResponse<Any> {
