@@ -47,6 +47,12 @@ fun Application.contentRoutes(contentService: ContentService) {
                 val result = contentService.addLicenses(contentId, licenseIds)
                 call.respond(result.statusCode, result)
             }
+
+            get("{id}/licenses") {
+                val contentId = call.parameters["id"]
+                val result = contentService.getLicenses(contentId)
+                call.respond(result.statusCode, result)
+            }
         }
     }
 }

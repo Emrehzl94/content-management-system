@@ -31,8 +31,7 @@ class ContentServiceImpl(
         val content = contentRepository.getById(id)
             ?: return BaseResponse.ErrorResponse(message = "Content can not be found with id: $id")
 
-        val licenseIds = contentLicenseRepository.getContentLicenses(content.id)
-        val licenses = licenseRepository.getByIds(licenseIds)
+        val licenses = getContentLicenses(content.id)
 
         return BaseResponse.SuccessResponse(data = contentToSingleResponse(content, licenses))
     }
@@ -69,14 +68,71 @@ class ContentServiceImpl(
             return BaseResponse.ErrorResponse(message = "License amount is too much to process")
         }
 
-        val licenses = licenseRepository.getByIds(licenseIds)
-        //todo:: Add license controls.
+        contentRepository.getById(contentId)
+            ?: return BaseResponse.ErrorResponse(message = "Content can not be found with id: $contentId")
 
-        licenses.filterNotNull().forEach {
-            contentLicenseRepository.add(contentId, it.id)
+        val licenses = licenseRepository.getByIds(licenseIds)
+        val contentLicenses = getContentLicenses(contentId)
+
+        val addedLicenses = findLicensesToAdd(contentLicenses, licenses)
+
+        if (addedLicenses.isEmpty()) {
+            return BaseResponse.ErrorResponse(message = "Any of these licenses could not be added.")
         }
 
+        contentLicenseRepository.add(contentId, addedLicenses.map { it.id })
+
         return BaseResponse.SuccessResponse(message = "Licenses were added to content successfully")
+    }
+
+    override suspend fun getLicenses(contentId: String?): BaseResponse<Any> {
+        if (contentId.isNullOrEmpty()) {
+            return BaseResponse.ErrorResponse(message = "Content id can not be empty")
+        }
+
+        contentRepository.getById(contentId)
+            ?: return BaseResponse.ErrorResponse(message = "Content can not be found with id: $contentId")
+
+        return BaseResponse.SuccessResponse(data = getContentLicenses(contentId))
+    }
+
+    private suspend fun getContentLicenses(contentId: String): List<License> {
+        val licenseIds = contentLicenseRepository.getContentLicenses(contentId)
+        return licenseRepository.getByIds(licenseIds)
+    }
+
+    private fun findLicensesToAdd(contentLicenses: List<License>, licensesToAdd: List<License>): List<License> {
+        val contentLicensesMut = contentLicenses.toMutableList()
+        val addedLicenses = mutableListOf<License>()
+
+        for (license in licensesToAdd) {
+            var error = false
+            for (contentLicense in contentLicensesMut) {
+                if (license.startTime >= contentLicense.startTime && license.startTime <= contentLicense.endTime) {
+                    error = true
+                    break
+                }
+                if (license.endTime >= contentLicense.startTime && license.endTime <= contentLicense.endTime) {
+                    error = true
+                    break
+                }
+                if (contentLicense.startTime >= license.startTime && contentLicense.startTime <= license.endTime) {
+                    error = true
+                    break
+                }
+                if (contentLicense.endTime >= license.startTime && contentLicense.endTime <= license.endTime) {
+                    error = true
+                    break
+                }
+            }
+
+            if (!error) {
+                contentLicensesMut.add(license)
+                addedLicenses.add(license)
+            }
+        }
+
+        return addedLicenses
     }
 
     private fun contentToSingleResponse(content: Content, licenses: List<License>): SingleContentResponse {

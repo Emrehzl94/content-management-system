@@ -21,8 +21,15 @@ class ContentLicenseRepositoryImpl: ContentLicenseRepository {
         return rowToContentLicense(statement?.resultedValues?.get(0))
     }
 
-    override suspend fun add(contentId: String, licenseIds: List<String>): ContentLicense? {
-        TODO("Not yet implemented")
+    override suspend fun add(contentId: String, licenseIds: List<String>) {
+        dbQuery {
+            for (licenseId in licenseIds) {
+                ContentLicenseTable.insert {
+                    it[content] = UUID.fromString(contentId)
+                    it[license] = UUID.fromString(licenseId)
+                }
+            }
+        }
     }
 
     override suspend fun getContentLicenses(contentId: String): List<String> {

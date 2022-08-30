@@ -6,13 +6,11 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import emrehzl.com.routes.contentRoutes
 import emrehzl.com.routes.licenseRoutes
-import emrehzl.com.service.ContentService
-import emrehzl.com.service.ContentServiceImpl
-import emrehzl.com.service.LicenseService
-import emrehzl.com.service.LicenseServiceImpl
+import emrehzl.com.service.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.jackson.*
+import kotlinx.coroutines.launch
 
 fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
@@ -32,5 +30,9 @@ fun main() {
 
         contentRoutes(contentService)
         licenseRoutes(licenseService)
+
+        launch {
+            ScheduledEventService.contentStatusChange()
+        }
     }.start(wait = true)
 }
