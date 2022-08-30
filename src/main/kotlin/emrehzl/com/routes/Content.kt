@@ -40,6 +40,13 @@ fun Application.contentRoutes(contentService: ContentService) {
                 val result = contentService.delete(id)
                 call.respond(result.statusCode, result)
             }
+
+            post("{id}/licenses/add") {
+                val contentId = call.parameters["id"]
+                val licenseIds = call.receive<List<String>>()
+                val result = contentService.addLicenses(contentId, licenseIds)
+                call.respond(result.statusCode, result)
+            }
         }
     }
 }

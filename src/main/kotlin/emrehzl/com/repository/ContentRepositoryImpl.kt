@@ -15,8 +15,6 @@ class ContentRepositoryImpl : ContentRepository {
         var statement: InsertStatement<Number>? = null
         dbQuery {
             statement = ContentTable.insert {
-                it[id] = UUID.randomUUID()
-                    .toString().replace("-", "")
                 it[name] = params.name
                 it[year] = params.year
                 it[summary] = params.summary
@@ -37,7 +35,7 @@ class ContentRepositoryImpl : ContentRepository {
 
     override suspend fun getById(id: String): Content? {
         val content = dbQuery {
-            ContentTable.select { ContentTable.id.eq(id) }
+            ContentTable.select { ContentTable.id.eq(UUID.fromString(id)) }
                 .map { rowToContent(it) }.singleOrNull()
         }
         return content
@@ -45,7 +43,7 @@ class ContentRepositoryImpl : ContentRepository {
 
     override suspend fun update(params: ContentUpdateParams): Content? {
         val content = dbQuery {
-            ContentTable.update({ ContentTable.id.eq(params.id) }) {
+            ContentTable.update({ ContentTable.id.eq(UUID.fromString(params.id)) }) {
                 if (params.name != null) {
                     it[name] = params.name
                 }
@@ -66,7 +64,7 @@ class ContentRepositoryImpl : ContentRepository {
                 }
             }
 
-            ContentTable.select { ContentTable.id.eq(params.id) }
+            ContentTable.select { ContentTable.id.eq(UUID.fromString(params.id)) }
                 .map { rowToContent(it) }.singleOrNull()
         }
 
@@ -75,14 +73,14 @@ class ContentRepositoryImpl : ContentRepository {
 
     override suspend fun delete(id: String) {
         dbQuery {
-            ContentTable.deleteWhere { ContentTable.id.eq(id) }
+            ContentTable.deleteWhere { ContentTable.id.eq(UUID.fromString(id)) }
         }
     }
 
     private fun rowToContent(row: ResultRow?): Content? {
         return if (row == null) null
         else Content(
-            id = row[ContentTable.id],
+            id = row[ContentTable.id].toString(),
             name = row[ContentTable.name],
             year = row[ContentTable.year],
             summary = row[ContentTable.summary],

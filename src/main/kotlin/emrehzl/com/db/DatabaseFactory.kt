@@ -15,6 +15,7 @@ object DatabaseFactory {
         transaction {
             SchemaUtils.create(ContentTable)
             SchemaUtils.create(LicenseTable)
+            SchemaUtils.create(ContentLicenseTable)
         }
     }
 

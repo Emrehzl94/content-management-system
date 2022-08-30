@@ -2,6 +2,7 @@ package emrehzl.com.repository
 
 import emrehzl.com.db.LicenseTable
 import emrehzl.com.db.DatabaseFactory
+import emrehzl.com.db.DatabaseFactory.dbQuery
 import emrehzl.com.models.License
 import emrehzl.com.reqresobjects.LicenseCreateParams
 import emrehzl.com.reqresobjects.LicenseUpdateParams
@@ -15,8 +16,6 @@ class LicenseRepositoryImpl : LicenseRepository {
         var statement: InsertStatement<Number>? = null
         DatabaseFactory.dbQuery {
             statement = LicenseTable.insert {
-                it[id] = UUID.randomUUID()
-                    .toString().replace("-", "")
                 it[name] = params.name
                 it[startTime] = LocalDate.parse(params.startTime)
                 it[endTime] = LocalDate.parse(params.endTime)
@@ -26,23 +25,31 @@ class LicenseRepositoryImpl : LicenseRepository {
     }
 
     override suspend fun list(): List<License?> {
-        val licenses = DatabaseFactory.dbQuery {
+        val licenses = dbQuery {
             LicenseTable.selectAll().map { rowToLicense(it) }.toList()
         }
         return licenses
     }
 
     override suspend fun getById(id: String): License? {
-        val license = DatabaseFactory.dbQuery {
-            LicenseTable.select { LicenseTable.id.eq(id) }
+        val license = dbQuery {
+            LicenseTable.select { LicenseTable.id.eq(UUID.fromString(id)) }
                 .map { rowToLicense(it) }.singleOrNull()
         }
         return license
     }
 
+    override suspend fun getByIds(ids: List<String>): List<License> {
+        val licenses = dbQuery {
+            LicenseTable.select { LicenseTable.id.inList(ids.map { UUID.fromString(it) }) }
+                .map { rowToLicense(it)}.toList()
+        }
+        return licenses.filterNotNull()
+    }
+
     override suspend fun update(params: LicenseUpdateParams): License? {
-        val license = DatabaseFactory.dbQuery {
-            LicenseTable.update({ LicenseTable.id.eq(params.id) }) {
+        val license = dbQuery {
+            LicenseTable.update({ LicenseTable.id.eq(UUID.fromString(params.id)) }) {
                 if (params.name != null) {
                     it[name] = params.name
                 }
@@ -54,7 +61,7 @@ class LicenseRepositoryImpl : LicenseRepository {
                 }
             }
 
-            LicenseTable.select { LicenseTable.id.eq(params.id) }
+            LicenseTable.select { LicenseTable.id.eq(UUID.fromString(params.id)) }
                 .map { rowToLicense(it) }.singleOrNull()
         }
 
@@ -62,15 +69,15 @@ class LicenseRepositoryImpl : LicenseRepository {
     }
 
     override suspend fun delete(id: String) {
-        DatabaseFactory.dbQuery {
-            LicenseTable.deleteWhere { LicenseTable.id.eq(id) }
+        dbQuery {
+            LicenseTable.deleteWhere { LicenseTable.id.eq(UUID.fromString(id)) }
         }
     }
 
     private fun rowToLicense(row: ResultRow?): License? {
         return if (row == null) null
         else License(
-            id = row[LicenseTable.id],
+            id = row[LicenseTable.id].toString(),
             name = row[LicenseTable.name],
             startTime = row[LicenseTable.startTime].toString(),
             endTime = row[LicenseTable.endTime].toString(),

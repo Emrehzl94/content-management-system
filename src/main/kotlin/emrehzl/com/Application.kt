@@ -1,12 +1,9 @@
 package emrehzl.com
 
 import emrehzl.com.db.DatabaseFactory
+import emrehzl.com.repository.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import emrehzl.com.repository.ContentRepository
-import emrehzl.com.repository.ContentRepositoryImpl
-import emrehzl.com.repository.LicenseRepository
-import emrehzl.com.repository.LicenseRepositoryImpl
 import emrehzl.com.routes.contentRoutes
 import emrehzl.com.routes.licenseRoutes
 import emrehzl.com.service.ContentService
@@ -26,11 +23,14 @@ fun main() {
         }
 
         val contentRepository: ContentRepository = ContentRepositoryImpl()
-        val contentService: ContentService = ContentServiceImpl(contentRepository)
-        contentRoutes(contentService)
-
         val licenseRepository: LicenseRepository = LicenseRepositoryImpl()
+        val contentLicenseRepository: ContentLicenseRepository = ContentLicenseRepositoryImpl()
+
+        val contentService: ContentService = ContentServiceImpl(
+            contentRepository, licenseRepository, contentLicenseRepository)
         val licenseService: LicenseService = LicenseServiceImpl(licenseRepository)
+
+        contentRoutes(contentService)
         licenseRoutes(licenseService)
     }.start(wait = true)
 }

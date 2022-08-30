@@ -1,12 +1,11 @@
 package emrehzl.com.db
 
 import emrehzl.com.models.ContentStatus
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.javatime.datetime
 import java.time.LocalDateTime
 
-object ContentTable: Table("contents") {
-    val id = varchar("id", 32)
+object ContentTable: UUIDTable("contents") {
     val name = varchar("name", 256)
     val year = integer("year")
     val summary = text("summary")
@@ -16,5 +15,4 @@ object ContentTable: Table("contents") {
     val posterUrl = text("poster_url").nullable()
     val videoUrl = text("video_url").nullable()
     val createdAt = datetime("created_at").clientDefault { LocalDateTime.now() }
-    override val primaryKey = PrimaryKey(id)
 }
