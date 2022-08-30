@@ -32,7 +32,7 @@ fun main() {
         licenseRoutes(licenseService)
 
         launch {
-            ScheduledEventService.contentStatusChange()
+            ScheduledEventService.contentStatusChange(contentRepository)
         }
     }.start(wait = true)
 }

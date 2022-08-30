@@ -21,8 +21,9 @@ class ContentServiceImpl(
         return BaseResponse.SuccessResponse(data = content)
     }
 
+    //todo: Add parameters and use filtered repo method.
     override suspend fun list(name: String?, status: ContentStatus?): BaseResponse<Any> {
-        return BaseResponse.SuccessResponse(data = contentRepository.list(name, status))
+        return BaseResponse.SuccessResponse(data = contentRepository.list())
     }
 
     override suspend fun getById(id: String?): BaseResponse<Any> {

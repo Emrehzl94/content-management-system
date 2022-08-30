@@ -1,13 +1,16 @@
 package emrehzl.com.repository
 
+import emrehzl.com.db.ContentLicenseTable
 import emrehzl.com.db.ContentTable
 import emrehzl.com.db.DatabaseFactory.dbQuery
+import emrehzl.com.db.LicenseTable
 import emrehzl.com.models.Content
 import emrehzl.com.models.ContentStatus
 import emrehzl.com.reqresobjects.ContentCreateParams
 import emrehzl.com.reqresobjects.ContentUpdateParams
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import java.time.LocalDate
 import java.util.*
 
 class ContentRepositoryImpl : ContentRepository {
@@ -28,18 +31,25 @@ class ContentRepositoryImpl : ContentRepository {
 
     override suspend fun list(name: String?, status: ContentStatus?): List<Content> {
         val query = ContentTable.selectAll()
-        val predicates = Op.build { ContentTable.name.like("")}
+        val predicates = Op.build { ContentTable.name.like("") }
 
         if (!name.isNullOrEmpty()) predicates.and { ContentTable.name.lowerCase().like(name.lowercase()) }
         if (status != null) predicates.and { ContentTable.status.eq(status) }
 
         val contents = dbQuery {
-//            ContentTable.select {
-//                ContentTable.name.lowerCase().like(nameMut)
-//            }
+//            ContentTable.selectAll()
 //                .map { rowToContent(it) }
 //                .toList()
             query.andWhere { predicates }
+                .map { rowToContent(it) }
+                .toList()
+        }
+        return contents.filterNotNull()
+    }
+
+    override suspend fun list(): List<Content> {
+        val contents = dbQuery {
+            ContentTable.selectAll()
                 .map { rowToContent(it) }
                 .toList()
         }
@@ -72,10 +82,30 @@ class ContentRepositoryImpl : ContentRepository {
         return content
     }
 
+    override suspend fun updateStatus(contentId: String, status: ContentStatus) {
+        dbQuery {
+            ContentTable.update({ ContentTable.id.eq(UUID.fromString(contentId)) }) {
+                TODO("find a way to update status...")
+            }
+        }
+    }
+
     override suspend fun delete(id: String) {
         dbQuery {
             ContentTable.deleteWhere { ContentTable.id.eq(UUID.fromString(id)) }
         }
+    }
+
+    override suspend fun hasActiveLicense(id: String): Boolean {
+        val exists = dbQuery {
+            ContentLicenseTable.innerJoin(LicenseTable).select {
+                (ContentLicenseTable.content eq (UUID.fromString(id))) and
+                        (ContentLicenseTable.license eq LicenseTable.id) and
+                        (LicenseTable.startTime lessEq LocalDate.now()) and
+                        (LicenseTable.endTime greaterEq LocalDate.now())
+            }.singleOrNull()
+        }
+        return exists != null
     }
 
     private fun rowToContent(row: ResultRow?): Content? {
