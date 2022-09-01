@@ -9,7 +9,6 @@ import emrehzl.com.repository.LicenseRepository
 import emrehzl.com.reqresobjects.ContentCreateParams
 import emrehzl.com.reqresobjects.ContentUpdateParams
 import emrehzl.com.reqresobjects.SingleContentResponse
-import emrehzl.com.utils.BaseResponse
 import emrehzl.com.utils.Response
 import io.ktor.http.*
 
