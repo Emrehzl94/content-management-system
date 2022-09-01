@@ -10,7 +10,7 @@ object ContentTable: UUIDTable("contents") {
     val year = integer("year")
     val summary = text("summary")
     val genre = varchar("genre", 256)
-    val status = enumeration<ContentStatus>("status")
+    val contentStatus = enumeration<ContentStatus>("status")
         .clientDefault { ContentStatus.InProgress }
     val posterUrl = text("poster_url").nullable()
     val videoUrl = text("video_url").nullable()

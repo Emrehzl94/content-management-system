@@ -10,6 +10,7 @@ import emrehzl.com.reqresobjects.ContentCreateParams
 import emrehzl.com.reqresobjects.ContentUpdateParams
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import org.jetbrains.exposed.sql.statements.UpdateStatement
 import java.time.LocalDate
 import java.util.*
 
@@ -34,7 +35,7 @@ class ContentRepositoryImpl : ContentRepository {
         val predicates = Op.build { ContentTable.name.like("") }
 
         if (!name.isNullOrEmpty()) predicates.and { ContentTable.name.lowerCase().like(name.lowercase()) }
-        if (status != null) predicates.and { ContentTable.status.eq(status) }
+        if (status != null) predicates.and { ContentTable.contentStatus.eq(status) }
 
         val contents = dbQuery {
 //            ContentTable.selectAll()
@@ -83,11 +84,12 @@ class ContentRepositoryImpl : ContentRepository {
     }
 
     override suspend fun updateStatus(contentId: String, status: ContentStatus) {
-        dbQuery {
+        val updatedAmount = dbQuery {
             ContentTable.update({ ContentTable.id.eq(UUID.fromString(contentId)) }) {
-                TODO("find a way to update status...")
+                it[contentStatus] = status
             }
         }
+        println("updatedAmount: $updatedAmount")
     }
 
     override suspend fun delete(id: String) {
@@ -116,7 +118,7 @@ class ContentRepositoryImpl : ContentRepository {
             year = row[ContentTable.year],
             summary = row[ContentTable.summary],
             genre = row[ContentTable.genre],
-            status = row[ContentTable.status],
+            status = row[ContentTable.contentStatus],
             posterUrl = row[ContentTable.posterUrl],
             videoUrl = row[ContentTable.videoUrl],
             createdAt = row[ContentTable.createdAt].toString()
