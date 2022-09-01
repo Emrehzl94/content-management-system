@@ -11,6 +11,7 @@ import emrehzl.com.reqresobjects.ContentUpdateParams
 import emrehzl.com.reqresobjects.SingleContentResponse
 import emrehzl.com.utils.BaseResponse
 import emrehzl.com.utils.Response
+import io.ktor.http.*
 
 class ContentServiceImpl(
     private val contentRepository: ContentRepository,
@@ -29,10 +30,12 @@ class ContentServiceImpl(
 
     override suspend fun getById(id: String?): Response<Any> {
         if (id == null) {
-            return Response.Error(message = "Id cannot be empty.")
+            return Response.Error(statusCode = HttpStatusCode.BadRequest,
+                message = "Id cannot be empty.")
         }
         val content = contentRepository.getById(id)
-            ?: return Response.Error(message = "Content can not be found with id: $id")
+            ?: return Response.Error(statusCode = HttpStatusCode.NotFound,
+                message = "Content can not be found with id: $id")
 
         val licenses = getContentLicenses(content.id)
 
@@ -42,7 +45,8 @@ class ContentServiceImpl(
     override suspend fun update(params: ContentUpdateParams): Response<Any> {
         val content = contentRepository.update(params)
         return if (content == null) {
-            Response.Error(message = "Content can not be updated")
+            Response.Error(statusCode = HttpStatusCode.InternalServerError,
+                message = "Content can not be updated")
         } else {
             Response.Success(data = content)
         }
@@ -50,29 +54,35 @@ class ContentServiceImpl(
 
     override suspend fun delete(id: String?): Response<Any> {
         if (id == null) {
-            return Response.Error(message = "Id can not be empty")
+            return Response.Error(statusCode = HttpStatusCode.BadRequest,
+                message = "Id can not be empty")
         }
         contentRepository.getById(id)
-            ?: return Response.Error(message = "Content can not be found with id: $id")
+            ?: return Response.Error(statusCode = HttpStatusCode.NotFound,
+                message = "Content can not be found with id: $id")
         contentRepository.delete(id)
         return Response.Success(message = "Content with id: $id was deleted successfully")
     }
 
     override suspend fun addLicenses(contentId: String?, licenseIds: List<String>): Response<Any> {
         if (contentId.isNullOrEmpty()) {
-            return Response.Error(message = "Content id can not be empty")
+            return Response.Error(statusCode = HttpStatusCode.BadRequest,
+                message = "Content id can not be empty")
         }
 
         if (licenseIds.isEmpty()) {
-            return Response.Error(message = "LicenseId list can not be empty")
+            return Response.Error(statusCode = HttpStatusCode.BadRequest,
+                message = "LicenseId list can not be empty")
         }
 
         if (licenseIds.size > 5) {
-            return Response.Error(message = "License amount is too much to process")
+            return Response.Error(statusCode = HttpStatusCode.BadRequest,
+                message = "License amount is too much to process")
         }
 
         contentRepository.getById(contentId)
-            ?: return Response.Error(message = "Content can not be found with id: $contentId")
+            ?: return Response.Error(statusCode = HttpStatusCode.NotFound,
+                message = "Content can not be found with id: $contentId")
 
         val licenses = licenseRepository.getByIds(licenseIds)
         val contentLicenses = getContentLicenses(contentId)
@@ -80,7 +90,8 @@ class ContentServiceImpl(
         val addedLicenses = findLicensesToAdd(contentLicenses, licenses)
 
         if (addedLicenses.isEmpty()) {
-            return Response.Error(message = "Any of these licenses could not be added.")
+            return Response.Error(statusCode = HttpStatusCode.BadRequest,
+                message = "Any of these licenses could not be added.")
         }
 
         contentLicenseRepository.add(contentId, addedLicenses.map { it.id })
@@ -90,11 +101,13 @@ class ContentServiceImpl(
 
     override suspend fun getLicenses(contentId: String?): Response<Any> {
         if (contentId.isNullOrEmpty()) {
-            return Response.Error(message = "Content id can not be empty")
+            return Response.Error(statusCode = HttpStatusCode.BadRequest,
+                message = "Content id can not be empty")
         }
 
         contentRepository.getById(contentId)
-            ?: return Response.Error(message = "Content can not be found with id: $contentId")
+            ?: return Response.Error(statusCode = HttpStatusCode.NotFound,
+                message = "Content can not be found with id: $contentId")
 
         return Response.Success(data = getContentLicenses(contentId))
     }
